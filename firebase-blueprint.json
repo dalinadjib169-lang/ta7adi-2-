@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "Stores user progress and rank information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID" },
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "points": { "type": "number", "description": "Total points earned" },
+        "level": { "type": "number", "description": "Current level reached" },
+        "unlockedLevels": { "type": "array", "items": { "type": "number" }, "description": "List of unlocked levels" },
+        "levelScores": { "type": "object", "description": "Best scores per level" },
+        "rank": { "type": "string", "enum": ["worm", "eagle", "tiger", "lion", "dragon"], "description": "User rank" },
+        "bonusPoints": { "type": "number", "description": "Total bonus points earned" },
+        "lastActive": { "type": "number", "description": "Last active timestamp" },
+        "isOnline": { "type": "boolean", "description": "Online status" }
+      },
+      "required": ["uid", "email", "displayName", "points", "level", "unlockedLevels", "rank"]
+    },
+    "challenges": {
+      "title": "Challenge",
+      "description": "Stores multiplayer challenges between students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "challengerId": { "type": "string" },
+        "challengerName": { "type": "string" },
+        "challengedId": { "type": "string" },
+        "challengedName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "completed", "cancelled", "playing"] },
+        "challengerScore": { "type": "number" },
+        "challengerTime": { "type": "number" },
+        "challengerLevel": { "type": "number" },
+        "challengedScore": { "type": "number" },
+        "challengedTime": { "type": "number" },
+        "challengedLevel": { "type": "number" },
+        "winnerId": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "questions": { "type": "array" }
+      },
+      "required": ["id", "challengerId", "challengedId", "status", "timestamp"]
+    },
+    "profiles": {
+      "title": "Public Profile",
+      "description": "Publicly accessible user information for leaderboard",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "points": { "type": "number" },
+        "rank": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "displayName", "points", "rank"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile document (Private)"
+    },
+    "/profiles/{userId}": {
+      "schema": "profiles",
+      "description": "Public profile document"
+    },
+    "/challenges/{challengeId}": {
+      "schema": "challenges",
+      "description": "Multiplayer challenge document"
+    }
+  }
+}
