@@ -247,15 +247,7 @@ export default function ChallengeGame({ challenge, profile, onClose, soundEnable
                   points: newWinnerPoints,
                   rank: newWinnerRank
                 });
-                await updateDoc(winnerProfileRef, { 
-                  points: newWinnerPoints,
-                  rank: newWinnerRank
-                });
                 await updateDoc(loserRef, { 
-                  points: newLoserPoints,
-                  rank: newLoserRank
-                });
-                await updateDoc(loserProfileRef, { 
                   points: newLoserPoints,
                   rank: newLoserRank
                 });

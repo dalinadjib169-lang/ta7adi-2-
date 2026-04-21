@@ -187,8 +187,27 @@ export default function App() {
           // Wait a moment for Firestore to pick up the auth token
           await new Promise(resolve => setTimeout(resolve, 500));
 
-          unsubProfile = onSnapshot(userRef, (doc) => {
-            if (doc.exists()) setProfile(doc.data() as UserProfile);
+          unsubProfile = onSnapshot(userRef, async (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data() as UserProfile;
+              setProfile(data);
+              
+              // NEW: Centralized sync to public profiles collection for the leaderboard
+              if (data.role === 'student') {
+                try {
+                  await setDoc(doc(db, 'profiles', user.uid), {
+                    uid: user.uid,
+                    displayName: data.displayName,
+                    points: data.points,
+                    rank: data.rank,
+                    photoURL: data.photoURL || null,
+                    role: 'student'
+                  }, { merge: true });
+                } catch (e) {
+                  console.error("Error syncing to profiles:", e);
+                }
+              }
+            }
           }, (error) => {
             const errInfo = {
               error: error instanceof Error ? error.message : String(error),
@@ -349,12 +368,6 @@ export default function App() {
         points: newPoints,
         rank: newRank,
         lastActive: Date.now()
-      });
-
-      // Sync public profile
-      await updateDoc(doc(db, 'profiles', auth.currentUser.uid), {
-        points: newPoints,
-        rank: newRank
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `users/${auth.currentUser.uid}`);

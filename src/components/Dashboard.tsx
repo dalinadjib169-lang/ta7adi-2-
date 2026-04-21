@@ -76,8 +76,8 @@ export default function Dashboard({
   useEffect(() => {
     if (!profile) return;
     
-    // Increased limit to 10 and ensure we get all active users (students only)
-    const q = query(collection(db, 'profiles'), where('role', '==', 'student'), orderBy('points', 'desc'), limit(10));
+    // Increased limit to 30 to support the new top-25 reward tiers
+    const q = query(collection(db, 'profiles'), where('role', '==', 'student'), orderBy('points', 'desc'), limit(30));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const users: UserProfile[] = [];
       snapshot.forEach((doc) => {
@@ -158,20 +158,24 @@ export default function Dashboard({
   };
 
   const getTeacherGift = (user: UserProfile) => {
-    const baseGift = getTeacherGiftRankBase(user.rank);
     // Find user's position in the overall leaderboard
     const position = leaderboard.findIndex(u => u.uid === user.uid);
     
-    // Bonus multiplier for top players
-    if (position >= 0 && position < 3) return baseGift * 2.0; // Top 3 get double
-    if (position >= 3 && position < 10) return baseGift * 1.5; // Top 10 get 1.5x
+    if (position === -1) return 0.1; // Default for others
     
-    return baseGift;
+    // Tiered rewards based on position (Groups of 5)
+    if (position < 5) return 5.0;      // Top 5: 5 points
+    if (position < 10) return 2.0;     // 6-10: 2 points
+    if (position < 15) return 1.5;     // 11-15: 1.5 points
+    if (position < 20) return 1.0;     // 16-20: 1 point
+    if (position < 25) return 0.5;     // 21-25: 0.5 points
+    
+    return 0.1; // Baseline for everyone else
   };
 
   const levels = Array.from({ length: 10 }, (_, i) => i + 1);
   const teacherPoints = getTeacherGift(profile).toFixed(1);
-  const maxGiftPossible = (getTeacherGiftRankBase('legend') * 2.0).toFixed(1); // 10.0 for top legends
+  const maxGiftPossible = "5.0"; 
 
   const handleClaimBonus = async () => {
     const bonus = parseFloat(teacherPoints);
@@ -495,27 +499,31 @@ export default function Dashboard({
           <div className="bg-slate-900/50 border border-green-500/20 p-6 rounded-[2rem]">
             <h3 className="text-green-400 font-bold mb-4 flex items-center gap-2">
               <Trophy size={18} />
-              هدايا الرتب (يومية)
+              هدايا المتفوقين (يومية)
             </h3>
             <div className="space-y-2 text-[10px]">
-              <div className="flex justify-between items-center p-2 bg-amber-500/10 rounded-lg">
-                <span className="text-amber-300">أسطورة (Legend)</span>
-                <span className="font-bold text-amber-400">5.0 +</span>
+              <div className="flex justify-between items-center p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <span className="text-amber-300 font-bold">المراكز 1 - 5</span>
+                <span className="font-black text-amber-400">+ 5.0 نقاط</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-yellow-500/10 rounded-lg">
-                <span className="text-yellow-300">عنقاء (Phoenix)</span>
-                <span className="font-bold text-yellow-400">3.0 +</span>
+              <div className="flex justify-between items-center p-2 bg-blue-500/10 rounded-lg">
+                <span className="text-blue-300">المراكز 6 - 10</span>
+                <span className="font-bold text-blue-400">+ 2.0 نقاط</span>
               </div>
               <div className="flex justify-between items-center p-2 bg-purple-500/10 rounded-lg">
-                <span className="text-purple-300">تنين (Dragon)</span>
-                <span className="font-bold text-purple-400">2.0 +</span>
+                <span className="text-purple-300">المراكز 11 - 15</span>
+                <span className="font-bold text-purple-400">+ 1.5 نقطة</span>
               </div>
               <div className="flex justify-between items-center p-2 bg-red-500/10 rounded-lg">
-                <span className="text-red-300">أسد (Lion)</span>
-                <span className="font-bold text-red-400">1.2 +</span>
+                <span className="text-red-300">المراكز 16 - 20</span>
+                <span className="font-bold text-red-400">+ 1.0 نقطة</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-500/10 rounded-lg italic">
-                <span className="text-slate-400">* يحصل الأوائل (توب 10) على مضاعفات إضافية!</span>
+              <div className="flex justify-between items-center p-2 bg-slate-500/10 rounded-lg">
+                <span className="text-slate-300">المراكز 21 - 25</span>
+                <span className="font-bold text-slate-400">+ 0.5 نقطة</span>
+              </div>
+              <div className="mt-3 p-2 bg-slate-800/30 rounded-lg italic text-[9px] text-slate-500 text-center">
+                * تُمنح الهدايا يومياً للأبطال في لوحة المتصدرين
               </div>
             </div>
           </div>
@@ -604,20 +612,26 @@ export default function Dashboard({
                 <section>
                   <h3 className="text-sm font-bold text-yellow-500 mb-3 flex items-center gap-2">
                     <Star size={16} />
-                    نظام النقاط:
+                    نظام النقاط والهدايا:
                   </h3>
                   <div className="space-y-2">
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
                       <div className="text-xs font-bold text-white mb-1">🎮 اللعب الفردي:</div>
-                      <p className="text-[10px] text-slate-400">تحصل على نقاط عن كل إجابة صحيحة في المستويات. تزداد الصعوبة تدريجياً.</p>
+                      <p className="text-[10px] text-slate-400">تحصل على نقاط عن كل إجابة صحيحة في المستويات.</p>
+                    </div>
+                    <div className="bg-green-500/10 p-3 rounded-xl border border-green-500/20">
+                      <div className="text-xs font-bold text-green-400 mb-1">🎁 هدايا المتفوقين (يومية):</div>
+                      <div className="grid grid-cols-2 gap-2 text-[9px] mt-1 text-slate-300">
+                        <span>• المراكز 1-5: **+5 نقاط**</span>
+                        <span>• المراكز 6-10: **+2 نقاط**</span>
+                        <span>• المراكز 11-15: **+1.5 نقطة**</span>
+                        <span>• المراكز 16-20: **+1 نقطة**</span>
+                        <span>• المراكز 21-25: **+0.5 نقطة**</span>
+                      </div>
                     </div>
                     <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                      <div className="text-xs font-bold text-white mb-1">⚔️ التحديات المباشرة:</div>
-                      <p className="text-[10px] text-slate-400">الفائز في التحدي يحصل على **50% من نقاط الخصم** كجائزة كبرى!</p>
-                    </div>
-                    <div className="bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-                      <div className="text-xs font-bold text-red-400 mb-1">🚫 عقوبة الخسارة:</div>
-                      <p className="text-[10px] text-red-400/80">خسارة التحدي أو الانسحاب منه تؤدي لخصم 50% من رصيدك الحالي.</p>
+                      <div className="text-xs font-bold text-white mb-1">⚔️ التحديات:</div>
+                      <p className="text-[10px] text-slate-400">الفائز يأخذ **50% من نقاط الخصم**. الخسارة تخصم 50% من نقاطك.</p>
                     </div>
                   </div>
                 </section>
