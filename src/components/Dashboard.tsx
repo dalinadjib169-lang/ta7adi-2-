@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Trophy, Star, Lock, LogOut, Settings, Users, Volume2, VolumeX, Swords, Check, X as CloseX, Brain, ArrowRight, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Trophy, Star, Lock, LogOut, Settings, Users, Volume2, VolumeX, Swords, Check, X as CloseX, Brain, ArrowRight, Activity, Info, BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
 import { UserProfile, Challenge, Rank } from '../types';
 import { cn, getRankFromPoints } from '../lib/utils';
 import Profile from './Profile';
@@ -70,6 +70,7 @@ export default function Dashboard({
   onSwitchView
 }: DashboardProps) {
   const [showProfile, setShowProfile] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
 
   useEffect(() => {
@@ -552,9 +553,128 @@ export default function Dashboard({
         />
       )}
 
-      <div className="mt-12 text-center text-slate-700 text-[10px] uppercase tracking-widest">
-        <p>developer prof dali nadjib</p>
+      {/* Rules & Guide Section at the bottom */}
+      <div className="mt-12 space-y-4">
+        <button 
+          onClick={() => setShowRules(true)}
+          className="w-full py-4 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-between px-6 hover:bg-slate-800 transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+              <BookOpen size={20} />
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-bold text-white">دليل قوانين اللعبة</div>
+              <div className="text-[10px] text-slate-500">تعلم كيف تترقى وتكسب النقاط</div>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-slate-600 group-hover:translate-x-[-4px] transition-transform" />
+        </button>
+
+        <div className="text-center text-slate-700 text-[10px] uppercase tracking-widest">
+          <p>developer prof dali nadjib</p>
+        </div>
       </div>
+
+      {/* Rules Modal */}
+      <AnimatePresence>
+        {showRules && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col my-auto max-h-[85vh]"
+            >
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <h2 className="text-xl font-black flex items-center gap-2 text-white">
+                  <HelpCircle className="text-blue-500" size={24} />
+                  قوانين المسابقة
+                </h2>
+                <button 
+                  onClick={() => setShowRules(false)}
+                  className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
+                >
+                  <CloseX size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+                {/* Points System */}
+                <section>
+                  <h3 className="text-sm font-bold text-yellow-500 mb-3 flex items-center gap-2">
+                    <Star size={16} />
+                    نظام النقاط:
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                      <div className="text-xs font-bold text-white mb-1">🎮 اللعب الفردي:</div>
+                      <p className="text-[10px] text-slate-400">تحصل على نقاط عن كل إجابة صحيحة في المستويات. تزداد الصعوبة تدريجياً.</p>
+                    </div>
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                      <div className="text-xs font-bold text-white mb-1">⚔️ التحديات المباشرة:</div>
+                      <p className="text-[10px] text-slate-400">الفائز في التحدي يحصل على **50% من نقاط الخصم** كجائزة كبرى!</p>
+                    </div>
+                    <div className="bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                      <div className="text-xs font-bold text-red-400 mb-1">🚫 عقوبة الخسارة:</div>
+                      <p className="text-[10px] text-red-400/80">خسارة التحدي أو الانسحاب منه تؤدي لخصم 50% من رصيدك الحالي.</p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Rank Progression */}
+                <section>
+                  <h3 className="text-sm font-bold text-purple-500 mb-3 flex items-center gap-2">
+                    <Trophy size={16} />
+                    سلم الرتب الملكي:
+                  </h3>
+                  <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <table className="w-full text-[10px]">
+                      <thead className="bg-slate-900 text-slate-400 uppercase">
+                        <tr>
+                          <th className="p-3 text-right">الرتبة</th>
+                          <th className="p-3 text-center">النقاط</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-900">
+                        <tr><td className="p-3">🐛 دودة (Worm)</td><td className="p-3 text-center">0+</td></tr>
+                        <tr><td className="p-3 text-blue-400">🦅 نسر (Eagle)</td><td className="p-3 text-center">100+</td></tr>
+                        <tr><td className="p-3 text-green-400">🐯 نمر (Tiger)</td><td className="p-3 text-center">250+</td></tr>
+                        <tr><td className="p-3 text-yellow-500">🦁 أسد (Lion)</td><td className="p-3 text-center">500+</td></tr>
+                        <tr><td className="p-3 text-red-500">🐲 تنين (Dragon)</td><td className="p-3 text-center">1000+</td></tr>
+                        <tr><td className="p-3 text-purple-500">🦅 فينيكس (Phoenix)</td><td className="p-3 text-center">2000+</td></tr>
+                        <tr className="bg-yellow-500/5"><td className="p-3 font-black text-yellow-500">👑 أسطورة (Legend)</td><td className="p-3 text-center font-bold text-yellow-500">4000+</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* General Info */}
+                <section>
+                  <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
+                    <Info size={16} />
+                    معلومات هامة:
+                  </h3>
+                  <ul className="list-disc list-inside text-[10px] text-slate-400 space-y-2 px-2">
+                    <li>لا يمكنك تحدي زميل إلا إذا كانت رتبته قريبة منك (نفس الرتبة أو المستوى التالي/السابق).</li>
+                    <li>تزداد صعوبة أسئلة التحدي تلقائياً بناءً على رتبة الخصوم.</li>
+                    <li>احرص على أخذ هديتك اليومية من الأستاذ في أسفل الصفحة.</li>
+                  </ul>
+                </section>
+              </div>
+
+              <div className="p-6 bg-slate-950 border-t border-slate-800">
+                <button 
+                  onClick={() => setShowRules(false)}
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-600/20"
+                >
+                  فهمت القوانين!
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
